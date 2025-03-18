@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import MapContainer from "@/components/MapContainer";
-import { DeviceType, DeviceStatus } from "@shared/schema";
+import { DeviceType, DeviceStatus, CityWithDeviceStatus } from "@shared/schema";
 
 export default function MapPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -22,7 +22,7 @@ export default function MapPage() {
   });
 
   // Fetch cities from API
-  const { data: cities, isLoading: isLoadingCities, isError: isCitiesError } = useQuery({
+  const { data: cities, isLoading: isLoadingCities, isError: isCitiesError } = useQuery<CityWithDeviceStatus[]>({
     queryKey: ['/api/cities'],
   });
 
@@ -65,7 +65,7 @@ export default function MapPage() {
   // Reset all filters
   const resetFilters = () => {
     setFilters({
-      cities: Object.fromEntries((cities || []).map((city: any) => [city.id, true])),
+      cities: Object.fromEntries((Array.isArray(cities) ? cities : []).map(city => [city.id, true])),
       deviceTypes: {
         router: true,
         sensor: true,
@@ -89,7 +89,7 @@ export default function MapPage() {
   if (cities && Object.keys(filters.cities).length === 0) {
     setFilters(prev => ({
       ...prev,
-      cities: Object.fromEntries(cities.map((city: any) => [city.id, true]))
+      cities: Object.fromEntries((Array.isArray(cities) ? cities : []).map(city => [city.id, true]))
     }));
   }
 
@@ -100,7 +100,7 @@ export default function MapPage() {
       <div className="flex h-[calc(100vh-64px)]">
         <Sidebar 
           isOpen={isSidebarOpen} 
-          cities={cities || []} 
+          cities={Array.isArray(cities) ? cities : []} 
           filters={filters}
           updateCityFilter={updateCityFilter}
           updateDeviceTypeFilter={updateDeviceTypeFilter}
@@ -112,7 +112,7 @@ export default function MapPage() {
         />
         
         <MapContainer 
-          cities={cities || []} 
+          cities={Array.isArray(cities) ? cities : []} 
           filters={filters}
           isLoading={isLoadingCities}
           isError={isCitiesError}
